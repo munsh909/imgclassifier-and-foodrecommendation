@@ -12,15 +12,14 @@ export default function Header() {
             Food Recommendation System
           </Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
-            <Navbar.Collapse id="basic-navbar-nav">
-              <Nav className="me-auto">
+            <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
+              <Nav className="ms-auto">
                 <Nav.Link href="#home">Home</Nav.Link>
                 <Nav.Link href="#link">History</Nav.Link>
-                <Nav.link href="#upload">Upload Image</Nav.link>
+                <Nav.Link href="#upload">Upload Image</Nav.Link>
               </Nav>
             </Navbar.Collapse>
           </Container>
         </Navbar>
       );
-    
-}
+     }

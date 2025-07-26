@@ -1,15 +1,21 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './App.css'
 import Home from './Pages/Home'
+import UploadPage from './Pages/UploadRecipeorimage'
+import Header from './Components/Header'
+import React from 'react'
 
 function App() {
-
   return (
-    <div>
-      <Home />
-    </div>
+    <BrowserRouter>
+      <Header />
+      <div style={{ paddingTop: '70px' }}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/upload" element={<UploadPage />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 

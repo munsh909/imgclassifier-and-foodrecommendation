@@ -14,9 +14,12 @@
     "@supabase/auth-ui-shared": "^0.1.8",
     "@supabase/supabase-js": "^2.52.1",
     "bootstrap": "^5.3.7",
+    "primeicons": "^7.0.0",
+    "primereact": "^10.9.6",
     "react": "^19.1.0",
     "react-bootstrap": "^2.10.10",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.7.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

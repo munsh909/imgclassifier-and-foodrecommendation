@@ -11,25 +11,21 @@ import torch
 import torchvision.transforms as transforms
 import io
 import joblib
-from sklearn.preprocessing import LabelEncoder  # Add this import
+from sklearn.preprocessing import LabelEncoder  
 from recommend import recommend_similar_items
 from contextlib import asynccontextmanager
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Global variables
 image_label_encoder = None
 image_classifier_model = None
 
-# Configuration
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 IMAGE_CLASSIFIER_MODEL_PATH = os.path.join(BASE_DIR, "Models", "Image Classifier", "food101_model.pth")
 LABEL_ENCODER_PATH = os.path.join(BASE_DIR, "Models", "Image Classifier", "label_encoder.pkl")
 
-# Image processing configuration
-MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB
+MAX_IMAGE_SIZE = 10 * 1024 * 1024  
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/jpg", "image/png", "image/webp"}
 
 def validate_file(file: UploadFile) -> None:
@@ -40,7 +36,6 @@ def validate_file(file: UploadFile) -> None:
             detail=f"Invalid file type. Allowed types: {', '.join(ALLOWED_IMAGE_TYPES)}"
         )
     
-    # Note: file.size might be None for some clients
     if hasattr(file, 'size') and file.size and file.size > MAX_IMAGE_SIZE:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
@@ -50,15 +45,12 @@ def validate_file(file: UploadFile) -> None:
 def load_model() -> torch.nn.Module:
     """Load and initialize the image classification model."""
     try:
-        # Load pre-trained DenseNet121
         weights = models.DenseNet121_Weights.IMAGENET1K_V1
         model = models.densenet121(weights=weights)
         
-        # Modify classifier for Food101 (101 classes)
         num_features = model.classifier.in_features
         model.classifier = nn.Linear(num_features, 101)
         
-        # Load trained weights
         if not os.path.exists(IMAGE_CLASSIFIER_MODEL_PATH):
             raise FileNotFoundError(f"Model file not found: {IMAGE_CLASSIFIER_MODEL_PATH}")
         
@@ -78,7 +70,7 @@ def get_image_transform() -> transforms.Compose:
     return transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # ImageNet normalization
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) 
     ])
 
 @asynccontextmanager
@@ -87,25 +79,21 @@ async def lifespan(app: FastAPI):
     global image_label_encoder, image_classifier_model
     
     try:
-        # Load label encoder
         if not os.path.exists(LABEL_ENCODER_PATH):
             raise FileNotFoundError(f"Label encoder not found: {LABEL_ENCODER_PATH}")
         
         try:
-            # Try loading with joblib first
             image_label_encoder = joblib.load(LABEL_ENCODER_PATH)
             logger.info("Label encoder loaded successfully with joblib")
         except Exception as joblib_error:
             logger.warning(f"joblib loading failed: {joblib_error}")
             try:
-                # Fallback: try loading with pickle directly
                 import pickle
                 with open(LABEL_ENCODER_PATH, 'rb') as f:
                     image_label_encoder = pickle.load(f)
                 logger.info("Label encoder loaded successfully with pickle")
             except Exception as pickle_error:
                 logger.error(f"Both joblib and pickle loading failed: {pickle_error}")
-                # Create a new label encoder as fallback with Food101 classes
                 logger.warning("Creating new label encoder with Food101 classes")
                 food101_classes = [
                     'apple_pie', 'baby_back_ribs', 'baklava', 'beef_carpaccio', 'beef_tartare',
@@ -133,7 +121,6 @@ async def lifespan(app: FastAPI):
                 image_label_encoder.fit(food101_classes)
                 logger.info("Created new label encoder with Food101 classes")
         
-        # Load model
         image_classifier_model = load_model()
         
         logger.info("All models loaded successfully")
@@ -144,10 +131,8 @@ async def lifespan(app: FastAPI):
     
     yield
     
-    # Cleanup (if needed)
     logger.info("Application shutting down")
 
-# Initialize FastAPI app
 app = FastAPI(
     title="Food Image Classifier API",
     description="API for classifying food images using DenseNet121 trained on Food101 dataset",
@@ -155,16 +140,13 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure this properly for production
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
-
-# Exception handler for validation errors
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc):
     return JSONResponse(
@@ -229,11 +211,9 @@ async def predict_food_classification(file: UploadFile = File(...)):
                 detail="Invalid image file or corrupted image"
             )
         
-        # Preprocess image
         image_transform = get_image_transform()
         input_tensor = image_transform(image).unsqueeze(0)
         
-        # Make prediction
         with torch.no_grad():
             outputs = image_classifier_model(input_tensor)
             probabilities = torch.nn.functional.softmax(outputs, dim=1)
@@ -242,10 +222,8 @@ async def predict_food_classification(file: UploadFile = File(...)):
             predicted_index = predicted_index.item()
             confidence_score = confidence.item()
         
-        # Get predicted label
         predicted_label = image_label_encoder.inverse_transform([predicted_index])[0]
         
-        # Get recommendations
         try:
             recommendations = recommend_similar_items(predicted_label, top_n=5)
         except Exception as e:

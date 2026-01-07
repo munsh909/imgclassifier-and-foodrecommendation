@@ -9,14 +9,14 @@ export default function Header() {
     <Navbar 
       expand="lg" 
       fixed="top"
-      style={{ backgroundColor: '#000000' }}  // solid black background
-      variant="dark" // bootstrap dark variant (white text by default)
+      style={{ backgroundColor: '#000000' }}  
+      variant="dark" 
     >
       <Container fluid>
         <Navbar.Brand
           href="#home"
           className="mx-auto text-center"
-          style={{ color: '#24b47e', fontWeight: '600' }} // dark green highlight
+          style={{ color: '#24b47e', fontWeight: '600' }}
         >
           Food Recommendation System
         </Navbar.Brand>

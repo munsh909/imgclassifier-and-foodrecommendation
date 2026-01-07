@@ -18,7 +18,7 @@ export default function UserEntriesTable() {
     const fetchData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
-        .from('your_table_name')  // Replace with your table name
+        .from('table_name') 
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
